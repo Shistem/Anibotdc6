@@ -37,4 +37,4 @@ jobs:
       run: |
         node bot.mjs
       env:
-        DISCORD_BOT_TOKEN: ${{ secrets.dctoken }}
+        token: ${{ secrets.dctoken }}
