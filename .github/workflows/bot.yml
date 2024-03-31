@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 */2 * * *' # Runs every 2 hours
+    - cron: '0 */12 * * *' # Runs every# Runs every 2 hours
 
 jobs:
   deploy:
@@ -22,17 +22,7 @@ jobs:
     - name: Install dependencies
       run: |
         npm install
-
-    - name: Kill existing bot processes
-      run: |
-        # Find the process ID of the bot
-        PID=$(pgrep -f bot.mjs)
-        # If the bot is running, kill it
-        if [ -n "$PID" ]; then
-          echo "Killing existing bot process with PID: $PID"
-          kill -9 $PID
-        fi
-
+        
     - name: Run bot
       run: |
         node bot.mjs
