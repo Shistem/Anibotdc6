@@ -8,8 +8,8 @@ import { WebhookClient } from 'discord.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-const rest = new REST({ version: '10' }).setToken(config.token);
+const token = process.env.token
+const rest = new REST({ version: '10' }).setToken(token);
 const commands = [];
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 client.commands = new Collection();
@@ -79,7 +79,7 @@ async function logError(interaction, error) {
     }
 }
 
-client.login(config.token)
+client.login(token)
     .then(() => console.log('Logged in!'))
     .catch((error) => {
         console.error(`Failed to log in: ${error}`);
