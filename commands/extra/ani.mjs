@@ -86,7 +86,7 @@ export async function shortenURL(longURL) {
     return longURL;
   }
 }
-async function checkEpisodeAvailability(animeId, episodeNumber) {
+export async function checkEpisodeAvailability(animeId, episodeNumber) {
   try {
     const response = await axios.get(`${config.searchBaseUrl}/info/${animeId}`);
     const totalEpisodes = response.data.totalEpisodes;
@@ -100,7 +100,7 @@ async function checkEpisodeAvailability(animeId, episodeNumber) {
     throw new Error(`Error fetching anime info: ${error.message}`);
   }
 }
-async function sendLinks(animeId, interaction, episodeNumber) {
+export async function sendLinks(animeId, interaction, episodeNumber) {
   try {
     const totalEpisodes = await checkEpisodeAvailability(animeId, episodeNumber);
 
