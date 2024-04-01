@@ -50,28 +50,8 @@ export async function handleSearch(interaction, searchUrl) {
   }
 }
 
-export async function handleEpisodeSelection(interaction, selectedAnime) {
-  await interaction.channel.sendTyping();
-  await interaction.channel.send(`Please enter the episode number for ${selectedAnime.title}:`);
 
-  const episodeFilter = m => m.author.id === interaction.user.id && !isNaN(parseInt(m.content));
-  const responseEpisode = await interaction.channel.awaitMessages({ filter: episodeFilter, max: 1, time: 60000, errors: ['time'] });
 
-  if (!responseEpisode.size) {
-    await interaction.channel.send({ content: 'Interaction timeout.' });
-    return;
-  }
-
-  const episodeNumber = parseInt(responseEpisode.first().content);
-
-  if (isNaN(episodeNumber)) {
-    await interaction.channel.send({ content: 'Please enter a valid number.' });
-    return;
-  }
-
-  await responseEpisode.first().delete();
-  return episodeNumber;
-}
 
 export async function handleError(interaction, error) {
   if (error.response && error.response.data) {
@@ -106,13 +86,37 @@ export async function shortenURL(longURL) {
     return longURL;
   }
 }
-
-export async function sendLinks(animeId, interaction,episodeNumber) {
-
-  const watchUrl = `${config.searchBaseUrl}/watch/${animeId}-episode-${episodeNumber}`;
-  const downloadUrl = `${config.downloadBaseUrl}/download/${animeId}-episode-${episodeNumber}`;
-
+async function checkEpisodeAvailability(animeId, episodeNumber) {
   try {
+    const response = await axios.get(`${config.searchBaseUrl}/info/${animeId}`);
+    const totalEpisodes = response.data.totalEpisodes;
+
+    if (episodeNumber > totalEpisodes) {
+      throw new Error(`Episode ${episodeNumber} is not available. The anime has only ${totalEpisodes} episodes.`);
+    }
+
+    return totalEpisodes;
+  } catch (error) {
+    throw new Error(`Error fetching anime info: ${error.message}`);
+  }
+}
+async function sendLinks(animeId, interaction, episodeNumber) {
+  try {
+    const totalEpisodes = await checkEpisodeAvailability(animeId, episodeNumber);
+
+    // If the episode is not available, notify the user and return
+    if (episodeNumber > totalEpisodes) {
+      await interaction.reply({
+        content: `Episode ${episodeNumber} is not available. The anime has only ${totalEpisodes} episodes. Please select a valid episode number.`,
+        ephemeral: true
+      });
+      return;
+    }
+
+    const watchUrl = `${config.searchBaseUrl}/watch/${animeId}-episode-${episodeNumber}`;
+    const downloadUrl = `${config.downloadBaseUrl}/download/${animeId}-episode-${episodeNumber}`;
+
+    // Fetch the watch and download data
     const [watchResponse, downloadResponse] = await Promise.all([
       axios.get(watchUrl, { params: { server: 'gogocdn' } }),
       axios.get(downloadUrl)
@@ -124,11 +128,13 @@ export async function sendLinks(animeId, interaction,episodeNumber) {
     const streamingLinks = [];
     const downloadLinks = [];
 
+    // Process streaming links
     for (const source of watchData.sources) {
       const shortenedURL = await shortenURL(source.url);
       streamingLinks.push(`[${source.quality}](${shortenedURL})`);
     }
 
+    // Process download links
     for (const [quality, url] of Object.entries(downloadData)) {
       const shortenedURL = await shortenURL(url);
       downloadLinks.push(`[${quality}](${shortenedURL})`);
@@ -136,31 +142,31 @@ export async function sendLinks(animeId, interaction,episodeNumber) {
 
     let linksText = '';
 
+    // Add streaming links to the message
     if (streamingLinks.length > 0) {
       linksText += `**Streaming Links:**\n${streamingLinks.join('\n')}\n\n`;
     } else {
       linksText += 'No streaming links available.\n\n';
     }
 
+    // Add download links to the message
     if (downloadLinks.length > 0) {
       linksText += `**Download Links:**\n${downloadLinks.join('\n')}`;
     } else {
       linksText += 'No download links available.';
     }
 
+    // Create the embed message
     const embed = new EmbedBuilder()
       .setTitle(`Episode ${episodeNumber}`)
       .setDescription(linksText)
-      .setColor('#0099ff')
-      .setFooter({ text: 'Downloader made by bre4d😔' });
-     await interaction.channel.sendTyping();
-    await interaction.followUp({ embeds: [embed] });
+      .setColor('#0099ff'); // Set the color of the embed
 
-    await logDownload(interaction, animeId, episodeNumber);
+    // Send the embed message
+    await interaction.channel.send({ embeds: [embed] });
   } catch (error) {
-    console.error('Error getting links:', error);
+    console.error('Error sending links:', error);
     await handleError(interaction, error);
-    throw error;
   }
 }
 
