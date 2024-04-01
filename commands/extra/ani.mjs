@@ -86,7 +86,7 @@ export async function shortenURL(longURL) {
     return longURL;
   }
 }
-export async function checkEpisodeAvailability(animeId, episodeNumber) {
+export async function checkEpisodeAvailability(animeId, episodeNumber, interaction) {
   try {
     const response = await axios.get(`${config.searchBaseUrl}/info/${animeId}`);
     const totalEpisodes = response.data.totalEpisodes;
