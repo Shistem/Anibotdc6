@@ -92,7 +92,11 @@ export async function checkEpisodeAvailability(animeId, episodeNumber) {
     const totalEpisodes = response.data.totalEpisodes;
 
     if (episodeNumber > totalEpisodes) {
-      throw new Error(`Episode ${episodeNumber} is not available. The anime has only ${totalEpisodes} episodes.`);
+      throw new Error(`Episode ${episodeNumber} is not available. The anime has only ${totalEpisodes} episodes.`)
+      await interaction.channel.send({
+        content: `Episode ${episodeNumber} is not available. The anime has only ${totalEpisodes} episodes. Please select a valid episode number.`,
+        ephemeral: true
+      });
     }
 
     return totalEpisodes;
