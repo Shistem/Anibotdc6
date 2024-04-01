@@ -1,9 +1,10 @@
 name: Discord Bot Deployment
-
 on:
   push:
     branches:
       - main
+  schedule:
+    - cron: '0 */6 * * *' # Run every 4 hours
 
 jobs:
   deploy:
