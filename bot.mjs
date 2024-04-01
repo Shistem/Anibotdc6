@@ -35,7 +35,20 @@ client.once('ready', async () => {
   console.log('Successfully reloaded application (/) commands.');
 
   client.user.setPresence({ activities: [{ name: 'your mom while being idle', type: ActivityType.Watching }], status: 'idle' });
+  setInterval(sendRestartMessage, 5 * 60 * 60 * 1000 + 45 * 60 * 1000); // 5 hours and 45 minutes
 });
+
+async function sendRestartMessage() {
+  try {
+    const owner = await client.users.fetch(config.ownerId);
+    await owner.send(`
+      Hey there, it's time to restart the bot.
+      Please log in and restart the bot as soon as possible.
+    `);
+  } catch (err) {
+    console.error('Error sending restart message:', err);
+  }
+}
 client.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return;
     const command = client.commands.get(interaction.commandName);
