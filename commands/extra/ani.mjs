@@ -110,7 +110,7 @@ export async function sendLinks(animeId, interaction, episodeNumber) {
 
     // If the episode is not available, notify the user and return
     if (episodeNumber > totalEpisodes) {
-      await interaction.reply({
+      await interaction.channel.send({
         content: `Episode ${episodeNumber} is not available. The anime has only ${totalEpisodes} episodes. Please select a valid episode number.`,
         ephemeral: true
       });
