@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - main
+  schedule:
+    - cron: '57 */5 * * *'
    # Run every 4 hours
 
 jobs:
